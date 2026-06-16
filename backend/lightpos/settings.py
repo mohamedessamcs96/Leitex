@@ -108,6 +108,7 @@ CORS_ALLOWED_ORIGINS = [
 CORS_ALLOW_CREDENTIALS = True
 
 STATIC_URL = '/static/'
+STATIC_ROOT = '/home/mohamedessam/Leitex/backend/staticfiles'
 MEDIA_URL  = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
