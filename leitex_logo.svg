@@ -1,0 +1,29 @@
+<svg width="680" height="320" viewBox="0 0 680 320" xmlns="http://www.w3.org/2000/svg">
+  <title>Leitex Logo</title>
+  <desc>Modern Leitex logo with a four-square icon in German black and gold, with one red letter accent</desc>
+
+  <rect width="680" height="320" fill="#ffffff"/>
+
+  <!-- Four-square icon -->
+  <rect x="148" y="98" width="52" height="52" rx="6" fill="#1a1a1a"/>
+  <rect x="208" y="98" width="52" height="52" rx="6" fill="#FFCE00"/>
+  <rect x="148" y="158" width="52" height="52" rx="6" fill="#FFCE00"/>
+  <rect x="208" y="158" width="52" height="52" rx="6" fill="#1a1a1a"/>
+
+  <circle cx="174" cy="124" r="6" fill="#FFCE00"/>
+  <circle cx="234" cy="184" r="6" fill="#FFCE00"/>
+
+  <!-- Wordmark -->
+  <text x="284" y="183" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-weight="700" font-size="68" letter-spacing="-1" fill="#1a1a1a">L</text>
+  <text x="324" y="183" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-weight="700" font-size="68" letter-spacing="-1" fill="#1a1a1a">E</text>
+  <text x="366" y="183" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-weight="700" font-size="68" letter-spacing="-1" fill="#1a1a1a">I</text>
+  <text x="386" y="183" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-weight="700" font-size="68" letter-spacing="-1" fill="#1a1a1a">T</text>
+  <text x="427" y="183" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-weight="700" font-size="68" letter-spacing="-1" fill="#CC0000">E</text>
+  <text x="469" y="183" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-weight="700" font-size="68" letter-spacing="-1" fill="#1a1a1a">X</text>
+
+  <!-- Gold underline -->
+  <rect x="284" y="196" width="250" height="4" rx="2" fill="#FFCE00"/>
+
+  <!-- Tagline -->
+  <text x="285" y="224" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-weight="300" font-size="13.5" letter-spacing="5" fill="#1a1a1a">PRECISION TEXTILES</text>
+</svg>
