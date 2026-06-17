@@ -2,6 +2,18 @@ import { useState, useEffect, useCallback } from 'react'
 import { analytics, orders as ordersApi, tables as tablesApi, adminApi } from '../../api'
 import { formatCents, useStore } from '../../store'
 
+// ── Responsive hook ───────────────────────────────────────────────────────────
+
+function useViewport() {
+  const [w, setW] = useState(typeof window !== 'undefined' ? window.innerWidth : 1024)
+  useEffect(() => {
+    const on = () => setW(window.innerWidth)
+    window.addEventListener('resize', on)
+    return () => window.removeEventListener('resize', on)
+  }, [])
+  return { w, isMobile: w < 700, isTablet: w >= 700 && w < 1024 }
+}
+
 // ── Shared primitives ─────────────────────────────────────────────────────────
 
 const iStyle: React.CSSProperties = {
@@ -32,8 +44,8 @@ function Modal({ title, onClose, onSave, busy, children }: {
   title: string; onClose: () => void; onSave: () => void; busy?: boolean; children: React.ReactNode
 }) {
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ background: 'var(--s1)', border: '1px solid var(--b2)', borderRadius: 12, width: 500, maxHeight: '85vh', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 12 }}>
+      <div style={{ background: 'var(--s1)', border: '1px solid var(--b2)', borderRadius: 12, width: 500, maxWidth: '100%', maxHeight: '90vh', display: 'flex', flexDirection: 'column' }}>
         <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--b1)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
           <div style={{ fontWeight: 700, fontSize: 15 }}>{title}</div>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--t3)', fontSize: 20, lineHeight: 1 }}>×</button>
@@ -97,6 +109,7 @@ export default function BackOfficeView() {
   const [dash, setDash]       = useState<any>(null)
   const [recentOrders, setRecent] = useState<any[]>([])
   const orders = useStore((s) => s.orders)
+  const { isMobile } = useViewport()
 
   useEffect(() => {
     analytics.dashboard().then(setDash).catch(() => {})
@@ -108,15 +121,15 @@ export default function BackOfficeView() {
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-      <div style={{ padding: '12px 20px', borderBottom: '1px solid var(--b1)', background: 'var(--s1)', display: 'flex', alignItems: 'center', gap: 20, flexShrink: 0 }}>
+      <div style={{ padding: isMobile ? '10px 14px' : '12px 20px', borderBottom: '1px solid var(--b1)', background: 'var(--s1)', display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'stretch' : 'center', gap: isMobile ? 10 : 20, flexShrink: 0 }}>
         <div>
           <div style={{ fontWeight: 700, fontSize: 15 }}>Admin Panel</div>
           <div style={{ fontSize: 11, color: 'var(--t3)' }}>Manage your restaurant</div>
         </div>
-        <div style={{ display: 'flex', gap: 2, marginLeft: 24, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: 2, marginLeft: isMobile ? 0 : 24, flexWrap: isMobile ? 'nowrap' : 'wrap', overflowX: isMobile ? 'auto' : 'visible', WebkitOverflowScrolling: 'touch' }}>
           {SECTIONS.map((s) => (
             <button key={s} onClick={() => setSection(s)} style={{
-              padding: '5px 14px', borderRadius: 7, border: 'none',
+              padding: '6px 14px', borderRadius: 7, border: 'none', whiteSpace: 'nowrap',
               background: section === s ? 'var(--s3)' : 'transparent',
               color: section === s ? 'var(--t1)' : 'var(--t3)',
               fontSize: 12, fontWeight: section === s ? 600 : 400, cursor: 'pointer',
@@ -125,7 +138,7 @@ export default function BackOfficeView() {
         </div>
       </div>
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div style={{ flex: 1, overflowY: 'auto', padding: isMobile ? 14 : 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
         {section === 'Overview'     && <OverviewPanel dash={dash} sessionRev={sessionRev} sessionPaid={sessionPaid} orders={orders} recentOrders={recentOrders} />}
         {section === 'Staff'        && <StaffPanel />}
         {section === 'Menu'         && <MenuPanel />}
@@ -142,7 +155,7 @@ export default function BackOfficeView() {
 function OverviewPanel({ dash, sessionRev, sessionPaid, orders, recentOrders }: any) {
   return (
     <>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12 }}>
         <StatCard label="Today's Revenue" value={formatCents(dash?.today?.revenue || 0)} sub={`${dash?.today?.order_count || 0} orders`} color="var(--green)" />
         <StatCard label="Session Revenue" value={formatCents(sessionRev)} sub={`${sessionPaid} paid orders`} />
         <StatCard label="Open Tables"     value={String(dash?.open_tables || 0)} sub="currently occupied" color="var(--amber)" />
@@ -173,7 +186,8 @@ function OverviewPanel({ dash, sessionRev, sessionPaid, orders, recentOrders }: 
 
       <div style={{ background: 'var(--s1)', border: '1px solid var(--b1)', borderRadius: 10, overflow: 'hidden' }}>
         <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--b1)', fontWeight: 600, fontSize: 13 }}>Recent Orders</div>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <div style={{ overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 520 }}>
           <thead>
             <tr style={{ background: 'var(--s2)' }}>
               {['Order','Table','Staff','Status','Total','Time'].map((h) => (
@@ -199,6 +213,7 @@ function OverviewPanel({ dash, sessionRev, sessionPaid, orders, recentOrders }: 
             })}
           </tbody>
         </table>
+        </div>
         {recentOrders.length === 0 && orders.length === 0 && (
           <div style={{ padding: 24, textAlign: 'center', color: 'var(--t3)', fontSize: 12 }}>No orders yet</div>
         )}
@@ -251,7 +266,8 @@ function StaffPanel() {
       <PanelHeader title="Staff Members" sub={`${list.length} members`} action={<AddBtn onClick={openAdd} label="Add Staff" />} />
 
       <div style={{ background: 'var(--s1)', border: '1px solid var(--b1)', borderRadius: 10, overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <div style={{ overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 520 }}>
           <thead>
             <tr style={{ background: 'var(--s2)' }}>
               {['Name','Username','Role','PIN','Actions'].map((h) => (
@@ -282,6 +298,7 @@ function StaffPanel() {
             ))}
           </tbody>
         </table>
+        </div>
         {list.length === 0 && <div style={{ padding: 24, textAlign: 'center', color: 'var(--t3)', fontSize: 12 }}>No staff members yet</div>}
       </div>
 
@@ -358,11 +375,12 @@ function MenuPanel() {
 
   const selectedCat = categories.find((c) => c.id === activeCategory?.id) || categories[0]
   const items = selectedCat?.items || []
+  const { isMobile } = useViewport()
 
   return (
-    <div style={{ display: 'flex', gap: 16, height: '100%' }}>
+    <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: 16, height: '100%' }}>
       {/* Left: Categories */}
-      <div style={{ width: 220, flexShrink: 0 }}>
+      <div style={{ width: isMobile ? '100%' : 220, flexShrink: 0 }}>
         <PanelHeader title="Categories" action={<AddBtn onClick={() => { setForm({ color: '#3b82f6' }); setModal('cat-add'); setErr('') }} label="Add" />} />
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {categories.map((cat) => (
@@ -385,7 +403,7 @@ function MenuPanel() {
       <div style={{ flex: 1, minWidth: 0 }}>
         {selectedCat ? (
           <>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10, marginBottom: 16 }}>
               <div>
                 <div style={{ fontWeight: 700, fontSize: 15, display: 'flex', alignItems: 'center', gap: 8 }}>
                   <div style={{ width: 12, height: 12, borderRadius: '50%', background: selectedCat.color }} />
@@ -393,7 +411,7 @@ function MenuPanel() {
                   <span style={{ fontSize: 11, color: 'var(--t3)', fontWeight: 400 }}>{items.length} items</span>
                 </div>
               </div>
-              <div style={{ display: 'flex', gap: 8 }}>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 <button onClick={() => { setForm({ ...selectedCat }); setModal('cat-edit'); setErr('') }}
                   style={{ padding: '5px 12px', borderRadius: 6, border: '1px solid var(--b2)', background: 'none', color: 'var(--t2)', cursor: 'pointer', fontSize: 12 }}>Edit Category</button>
                 <button onClick={() => delCat(selectedCat)}
@@ -402,7 +420,8 @@ function MenuPanel() {
               </div>
             </div>
             <div style={{ background: 'var(--s1)', border: '1px solid var(--b1)', borderRadius: 10, overflow: 'hidden' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 600 }}>
                 <thead>
                   <tr style={{ background: 'var(--s2)' }}>
                     {['Name','Description','Price','Station','Available','Actions'].map((h) => (
@@ -432,6 +451,7 @@ function MenuPanel() {
                   ))}
                 </tbody>
               </table>
+              </div>
               {items.length === 0 && <div style={{ padding: 24, textAlign: 'center', color: 'var(--t3)', fontSize: 12 }}>No items in this category yet</div>}
             </div>
           </>
@@ -646,7 +666,8 @@ function OrdersPanel({ orders }: { orders: any[] }) {
     <div>
       <PanelHeader title="All Orders" sub={`${orders.length} orders`} />
       <div style={{ background: 'var(--s1)', border: '1px solid var(--b1)', borderRadius: 10, overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <div style={{ overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 640 }}>
           <thead>
             <tr style={{ background: 'var(--s2)' }}>
               {['#','Type','Table','Staff','Items','Total','Status','Time'].map((h) => (
@@ -674,6 +695,7 @@ function OrdersPanel({ orders }: { orders: any[] }) {
             })}
           </tbody>
         </table>
+        </div>
         {orders.length === 0 && <div style={{ padding: 24, textAlign: 'center', color: 'var(--t3)', fontSize: 12 }}>No orders yet</div>}
       </div>
     </div>
