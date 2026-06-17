@@ -115,7 +115,7 @@ export const useStore = create<AppStore>((set, get) => ({
     set({ tablesLoading: true })
     try {
       const data = await tables.list()
-      const tablesList = Array.isArray(data) ? data : (data.results || [])
+      const tablesList = Array.isArray(data) ? data : ((data as any).results || [])
       set({ tables: tablesList.map(mapTable) })
     } catch (e) {
       console.error('Failed to load tables:', e)
@@ -387,6 +387,7 @@ function mapOrder(o: any): Order {
     status:      o.status,
     lines:       (o.lines || []).map(mapLine),
     payments:    (o.payments || []),
+    type:        o.type || 'DINE_IN',
     discount:    o.discount || 0,
     createdAt:   new Date(o.created_at),
     closedAt:    o.closed_at ? new Date(o.closed_at) : undefined,

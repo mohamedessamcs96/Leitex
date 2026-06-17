@@ -61,7 +61,7 @@ export default function PaymentModal({ total }: { total: number }) {
           {/* Method */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
             {(['CASH', 'CARD', 'SPLIT'] as PayMethod[]).map((m) => {
-              const icons: Record<PayMethod, JSX.Element> = {
+              const icons: Partial<Record<PayMethod, JSX.Element>> = {
                 CASH: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><rect x="1" y="4" width="22" height="16" rx="3"/><path d="M1 10h22M8 16h2"/></svg>,
                 CARD: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/><path d="M7 15h2M11 15h4"/></svg>,
                 SPLIT: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>,

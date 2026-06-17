@@ -1,6 +1,4 @@
 import { useStore } from '../store'
-import { useState } from 'react'
-import { STAFF } from '../data'
 
 export function Toast() {
   const toast = useStore((s) => s.toast)

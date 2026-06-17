@@ -299,7 +299,8 @@ export default function POSView() {
             ))}
           </div>
           <button onClick={handleSendToKitchen} disabled={draft.lines.length === 0 || !draft.tableId}
-            style={{ height: 42, borderRadius: 8, border: 'none', background: draft.lines.length > 0 && draft.tableId ? 'var(--accent)' : 'var(--s3)', color: draft.lines.length > 0 && draft.tableId ? 'white' : 'var(--t3)', fontSize: 13, fontWeight: 600, cursor: draft.lines.length > 0 && draft.tableId ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, title: draft.tableId ? '' : '⚠️ Select a table first' }}>
+            title={draft.tableId ? '' : '⚠️ Select a table first'}
+            style={{ height: 42, borderRadius: 8, border: 'none', background: draft.lines.length > 0 && draft.tableId ? 'var(--accent)' : 'var(--s3)', color: draft.lines.length > 0 && draft.tableId ? 'white' : 'var(--t3)', fontSize: 13, fontWeight: 600, cursor: draft.lines.length > 0 && draft.tableId ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
             <SendIcon />
             Send to Kitchen
           </button>

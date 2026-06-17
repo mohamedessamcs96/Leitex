@@ -17,7 +17,7 @@ export default function InventoryView() {
     setLoading(true)
     try {
       const data = await inventory.ingredients()
-      setItems(Array.isArray(data) ? data : (data.results || []))
+      setItems(Array.isArray(data) ? data : ((data as any).results || []))
     } catch {
       setItems([])
     } finally {
