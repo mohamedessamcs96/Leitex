@@ -280,3 +280,41 @@ export const clockApi = {
   myHours:   () => request<any[]>('/orders/clock/my-hours/'),
   allEntries:() => request<any[]>('/orders/clock/'),
 }
+
+// ── Admin CRUD ────────────────────────────────────────────
+export const adminApi = {
+  // Staff
+  staffList:   () => request<any[]>('/staff/members/'),
+  staffCreate: (d: { username: string; name: string; role: string; pin: string }) =>
+    request<any>('/staff/members/', { method: 'POST', body: JSON.stringify({ ...d, password: d.pin }) }),
+  staffUpdate: (id: number, d: any) =>
+    request<any>(`/staff/members/${id}/`, { method: 'PATCH', body: JSON.stringify(d) }),
+  staffDelete: (id: number) =>
+    request<void>(`/staff/members/${id}/`, { method: 'DELETE' }),
+
+  // Menu categories
+  categoryList:   () => request<any[]>('/menu/categories/'),
+  categoryCreate: (d: { name: string; color: string }) =>
+    request<any>('/menu/categories/', { method: 'POST', body: JSON.stringify(d) }),
+  categoryUpdate: (id: number, d: any) =>
+    request<any>(`/menu/categories/${id}/`, { method: 'PATCH', body: JSON.stringify(d) }),
+  categoryDelete: (id: number) =>
+    request<void>(`/menu/categories/${id}/`, { method: 'DELETE' }),
+
+  // Menu items
+  itemCreate: (d: { category: number; name: string; price: number; description?: string; station: string }) =>
+    request<any>('/menu/items/', { method: 'POST', body: JSON.stringify(d) }),
+  itemUpdate: (id: number, d: any) =>
+    request<any>(`/menu/items/${id}/`, { method: 'PATCH', body: JSON.stringify(d) }),
+  itemDelete: (id: number) =>
+    request<void>(`/menu/items/${id}/`, { method: 'DELETE' }),
+
+  // Locations / Restaurants
+  locationList:   () => request<any[]>('/locations/branches/'),
+  locationCreate: (d: any) =>
+    request<any>('/locations/branches/', { method: 'POST', body: JSON.stringify(d) }),
+  locationUpdate: (id: number, d: any) =>
+    request<any>(`/locations/branches/${id}/`, { method: 'PATCH', body: JSON.stringify(d) }),
+  locationDelete: (id: number) =>
+    request<void>(`/locations/branches/${id}/`, { method: 'DELETE' }),
+}
