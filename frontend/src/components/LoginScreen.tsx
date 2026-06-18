@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useStore } from '../store'
+import { useIsMobile } from '../useIsMobile'
 
 const STAFF_HINTS = [
   { name: 'James',  role: 'Manager',  pin: '1234', color: '#a855f7' },
@@ -18,15 +19,6 @@ function useClock() {
   return now
 }
 
-function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 760)
-  useEffect(() => {
-    function onResize() { setIsMobile(window.innerWidth < 760) }
-    window.addEventListener('resize', onResize)
-    return () => window.removeEventListener('resize', onResize)
-  }, [])
-  return isMobile
-}
 
 export default function LoginScreen() {
   const pinLogin = useStore((s) => s.pinLogin)

@@ -3,6 +3,7 @@ import { useStore, formatCents, getDraftSubtotal } from '../store'
 import type { MenuCategory } from '../types'
 import ModifierModal from './ModifierModal'
 import PaymentModal from './PaymentModal'
+import { useIsMobile } from '../useIsMobile'
 
 function ChevronDown() {
   return <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M6 9l6 6 6-6"/></svg>
@@ -25,6 +26,8 @@ export default function POSView() {
   const [search, setSearch]             = useState('')
   const [showTableMenu, setShowTableMenu] = useState(false)
   const [discountInput, setDiscountInput] = useState('')
+  const isMobile = useIsMobile()
+  const [mobileTab, setMobileTab] = useState<'menu' | 'order'>('menu')
 
   const menuCategories = useStore((s) => s.menuCategories)
   const menuLoading    = useStore((s) => s.menuLoading)
@@ -101,9 +104,12 @@ export default function POSView() {
   ]
 
   return (
-    <div style={{ display: 'flex', height: '100%', overflow: 'hidden' }}>
+    <div style={{ display: 'flex', height: '100%', overflow: 'hidden', position: 'relative' }}>
       {/* Menu Panel */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', borderRight: '1px solid var(--b1)' }}>
+      <div style={{
+        flex: 1, display: isMobile && mobileTab === 'order' ? 'none' : 'flex', flexDirection: 'column',
+        overflow: 'hidden', borderRight: isMobile ? 'none' : '1px solid var(--b1)',
+      }}>
         {/* Topbar */}
         <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--b1)', display: 'flex', alignItems: 'center', gap: 12, background: 'var(--s1)' }}>
           <div style={{ position: 'relative', flex: 1 }}>
@@ -218,9 +224,17 @@ export default function POSView() {
       </div>
 
       {/* Order Panel */}
-      <div style={{ width: 320, display: 'flex', flexDirection: 'column', background: 'var(--s1)', flexShrink: 0 }}>
+      <div style={{
+        width: isMobile ? '100%' : 320, display: isMobile && mobileTab === 'menu' ? 'none' : 'flex',
+        flexDirection: 'column', background: 'var(--s1)', flexShrink: 0,
+      }}>
         <div style={{ padding: '12px 14px', borderBottom: '1px solid var(--b1)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {isMobile && (
+              <button onClick={() => setMobileTab('menu')} style={{ background: 'transparent', border: 'none', color: 'var(--t2)', padding: 4, cursor: 'pointer', display: 'flex' }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+              </button>
+            )}
             <span style={{ fontWeight: 600, fontSize: 13 }}>Current Order</span>
             {lineCount > 0 && <span style={{ background: 'var(--accent)', color: 'white', borderRadius: 10, padding: '1px 7px', fontSize: 11, fontWeight: 600 }}>{lineCount}</span>}
           </div>
@@ -306,6 +320,25 @@ export default function POSView() {
           </button>
         </div>
       </div>
+
+      {/* Mobile floating cart button */}
+      {isMobile && mobileTab === 'menu' && lineCount > 0 && (
+        <button
+          onClick={() => setMobileTab('order')}
+          style={{
+            position: 'absolute', bottom: 16, left: 16, right: 16, height: 50,
+            borderRadius: 12, border: 'none', background: 'var(--accent)', color: 'white',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 18px',
+            fontSize: 14, fontWeight: 600, cursor: 'pointer', boxShadow: '0 8px 24px rgba(0,0,0,0.35)', zIndex: 50,
+          }}
+        >
+          <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ background: 'rgba(255,255,255,0.25)', borderRadius: 10, padding: '2px 8px', fontSize: 12 }}>{lineCount}</span>
+            View Order
+          </span>
+          <span className="mono">{formatCents(total)}</span>
+        </button>
+      )}
 
       {modifierMenuItemId && <ModifierModal />}
       {showPayModal && <PaymentModal total={total} />}

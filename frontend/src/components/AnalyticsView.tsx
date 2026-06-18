@@ -166,7 +166,7 @@ export default function AnalyticsView() {
 
       <div style={{ flex: 1, overflowY: 'auto', padding: 20, display: 'flex', flexDirection: 'column', gap: 16, opacity: loading ? 0.6 : 1, transition: 'opacity .15s' }}>
         {/* KPI cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12 }}>
           {[
             { label: 'Net Revenue',    value: formatCents(summary.revenue || 0),    sub: `${formatCents(summary.gross_revenue || 0)} gross`, color: 'var(--green)' },
             { label: 'Orders',         value: String(summary.order_count || 0),     sub: `${summary.items_sold || 0} items sold`, color: 'var(--t1)' },
@@ -184,7 +184,7 @@ export default function AnalyticsView() {
         </div>
 
         {/* Revenue charts */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 12 }}>
           {/* Weekly revenue chart */}
           <div style={card}>
             <div style={sectionTitle}>Last 7 Days</div>
@@ -228,7 +228,7 @@ export default function AnalyticsView() {
         </div>
 
         {/* Breakdown grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
           {/* Payment methods */}
           <div style={card}>
             <div style={sectionTitle}>Payment Methods</div>
@@ -313,7 +313,7 @@ export default function AnalyticsView() {
         </div>
 
         {/* Bottom grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 12 }}>
           {/* Top items */}
           <div style={card}>
             <div style={sectionTitle}>Top Items</div>
