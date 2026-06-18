@@ -18,6 +18,16 @@ function useClock() {
   return now
 }
 
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 760)
+  useEffect(() => {
+    function onResize() { setIsMobile(window.innerWidth < 760) }
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
+  return isMobile
+}
+
 export default function LoginScreen() {
   const pinLogin = useStore((s) => s.pinLogin)
   const authLoading = useStore((s) => s.authLoading)
@@ -26,6 +36,7 @@ export default function LoginScreen() {
   const [selectedStaff, setSelectedStaff] = useState<typeof STAFF_HINTS[number] | null>(null)
   const [showDemo, setShowDemo] = useState(false)
   const now = useClock()
+  const isMobile = useIsMobile()
 
   function handleKey(k: string) {
     if (authLoading || pin.length >= 4) return
@@ -52,16 +63,17 @@ export default function LoginScreen() {
 
   return (
     <div style={{
-      width: '100vw', height: '100vh', display: 'flex',
-      background: 'var(--bg)', overflow: 'hidden',
+      width: '100vw', height: '100vh', display: 'flex', flexDirection: isMobile ? 'column' : 'row',
+      background: 'var(--bg)', overflow: isMobile ? 'auto' : 'hidden',
     }}>
       {/* Left branding panel */}
       <div style={{
-        flex: '0 0 42%', minWidth: 380, position: 'relative', overflow: 'hidden',
+        flex: isMobile ? '0 0 auto' : '0 0 42%', minWidth: isMobile ? 0 : 380, position: 'relative', overflow: 'hidden',
         display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
-        padding: '48px 56px',
+        padding: isMobile ? '28px 24px' : '48px 56px',
         background: 'radial-gradient(circle at 25% 20%, rgba(232,97,44,0.25), transparent 55%), linear-gradient(160deg, #1a1410 0%, #0c0c0e 70%)',
-        borderRight: '1px solid var(--b1)',
+        borderRight: isMobile ? 'none' : '1px solid var(--b1)',
+        borderBottom: isMobile ? '1px solid var(--b1)' : 'none',
       }}>
         {/* Decorative grid pattern */}
         <div style={{
@@ -74,7 +86,7 @@ export default function LoginScreen() {
         {/* Logo + brand */}
         <div className="fade-in" style={{ position: 'relative', zIndex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-            <svg width="46" height="46" viewBox="0 0 32 32" fill="none">
+            <svg width={isMobile ? 36 : 46} height={isMobile ? 36 : 46} viewBox="0 0 32 32" fill="none">
               <rect x="1" y="1" width="14" height="14" rx="2.5" fill="#f0f0f0"/>
               <rect x="17" y="1" width="14" height="14" rx="2.5" fill="#FFCE00"/>
               <rect x="1" y="17" width="14" height="14" rx="2.5" fill="#FFCE00"/>
@@ -83,7 +95,7 @@ export default function LoginScreen() {
               <circle cx="24" cy="24" r="2.5" fill="#FFCE00"/>
             </svg>
             <div>
-              <div style={{ fontSize: 22, fontWeight: 700, letterSpacing: '0.04em', lineHeight: 1 }}>
+              <div style={{ fontSize: isMobile ? 18 : 22, fontWeight: 700, letterSpacing: '0.04em', lineHeight: 1 }}>
                 <span>LEIT</span><span style={{ color: '#CC0000' }}>E</span><span>X</span>
               </div>
               <div style={{ fontSize: 11, color: 'var(--t3)', letterSpacing: '0.18em', marginTop: 4, textTransform: 'uppercase' }}>Restaurant Management</div>
@@ -92,26 +104,28 @@ export default function LoginScreen() {
         </div>
 
         {/* Center hero copy */}
-        <div className="slide-up" style={{ position: 'relative', zIndex: 1, maxWidth: 380 }}>
-          <div style={{
-            display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 10px',
-            borderRadius: 20, background: 'var(--green-bg)', border: '1px solid rgba(34,197,94,0.25)',
-            fontSize: 11, fontWeight: 600, color: 'var(--green)', marginBottom: 18,
-          }}>
-            <span className="pulse" style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--green)' }} />
-            System Online
+        {!isMobile && (
+          <div className="slide-up" style={{ position: 'relative', zIndex: 1, maxWidth: 380 }}>
+            <div style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 10px',
+              borderRadius: 20, background: 'var(--green-bg)', border: '1px solid rgba(34,197,94,0.25)',
+              fontSize: 11, fontWeight: 600, color: 'var(--green)', marginBottom: 18,
+            }}>
+              <span className="pulse" style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--green)' }} />
+              System Online
+            </div>
+            <div style={{ fontSize: 34, fontWeight: 700, lineHeight: 1.25, letterSpacing: '-0.02em' }}>
+              Welcome back to your floor.
+            </div>
+            <div style={{ fontSize: 14, color: 'var(--t2)', marginTop: 12, lineHeight: 1.6 }}>
+              Sign in with your staff PIN to manage orders, tables and the kitchen in real time.
+            </div>
           </div>
-          <div style={{ fontSize: 34, fontWeight: 700, lineHeight: 1.25, letterSpacing: '-0.02em' }}>
-            Welcome back to your floor.
-          </div>
-          <div style={{ fontSize: 14, color: 'var(--t2)', marginTop: 12, lineHeight: 1.6 }}>
-            Sign in with your staff PIN to manage orders, tables and the kitchen in real time.
-          </div>
-        </div>
+        )}
 
         {/* Clock + footer */}
-        <div className="fade-in" style={{ position: 'relative', zIndex: 1 }}>
-          <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 42, fontWeight: 700, letterSpacing: '-0.02em' }}>
+        <div className="fade-in" style={{ position: 'relative', zIndex: 1, marginTop: isMobile ? 16 : 0 }}>
+          <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: isMobile ? 24 : 42, fontWeight: 700, letterSpacing: '-0.02em' }}>
             {timeStr}
           </div>
           <div style={{ fontSize: 13, color: 'var(--t3)', marginTop: 4 }}>{dateStr}</div>
@@ -119,8 +133,8 @@ export default function LoginScreen() {
       </div>
 
       {/* Right login panel */}
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 32 }}>
-        <div className="slide-up" style={{ width: 380, display: 'flex', flexDirection: 'column', gap: 22 }}>
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: isMobile ? '24px 16px' : 32 }}>
+        <div className="slide-up" style={{ width: isMobile ? '100%' : 380, maxWidth: 380, display: 'flex', flexDirection: 'column', gap: 22 }}>
           <div>
             <div style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.01em' }}>Staff Sign In</div>
             <div style={{ fontSize: 13, color: 'var(--t3)', marginTop: 4 }}>Select your name, then enter your PIN</div>
