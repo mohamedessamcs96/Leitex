@@ -162,9 +162,9 @@ export DEBUG=False
 For real-time at scale, switch Channel Layers to Redis in `settings.py`:
 ```python
 CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'CONFIG': {'hosts': [('127.0.0.1', 6379)]},
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {"hosts": [("127.0.0.1", 6379)]},
     }
 }
 ```

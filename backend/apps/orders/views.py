@@ -8,8 +8,12 @@ from channels.layers import get_channel_layer
 
 from .models import Order, OrderLine, Payment, ClockEntry
 from .serializers import (
-    OrderSerializer, CreateOrderSerializer, AddLineSerializer,
-    KDSStatusSerializer, ProcessPaymentSerializer, OrderLineSerializer,
+    OrderSerializer,
+    CreateOrderSerializer,
+    AddLineSerializer,
+    KDSStatusSerializer,
+    ProcessPaymentSerializer,
+    OrderLineSerializer,
     ClockEntrySerializer,
 )
 from apps.tables.models import RestaurantTable
@@ -19,23 +23,24 @@ def broadcast(event_type: str, data: dict):
     try:
         channel_layer = get_channel_layer()
         async_to_sync(channel_layer.group_send)(
-            "pos_updates",
-            {"type": "pos.message", "event": event_type, "data": data}
+            "pos_updates", {"type": "pos.message", "event": event_type, "data": data}
         )
     except Exception:
         pass
 
 
 class OrderViewSet(viewsets.ModelViewSet):
-    queryset = Order.objects.select_related("table","staff","customer").prefetch_related("lines","payments")
-    serializer_class   = OrderSerializer
-    filterset_fields   = ["status","table","staff","type"]
+    queryset = Order.objects.select_related(
+        "table", "staff", "customer"
+    ).prefetch_related("lines", "payments")
+    serializer_class = OrderSerializer
+    filterset_fields = ["status", "table", "staff", "type"]
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         qs = super().get_queryset()
         if self.request.query_params.get("active"):
-            qs = qs.filter(status__in=["OPEN","SENT","READY"])
+            qs = qs.filter(status__in=["OPEN", "SENT", "READY"])
         return qs
 
     @transaction.atomic
@@ -43,26 +48,38 @@ class OrderViewSet(viewsets.ModelViewSet):
         ser = CreateOrderSerializer(data=request.data)
         ser.is_valid(raise_exception=True)
         d = ser.validated_data
-        table = RestaurantTable.objects.get(pk=d["table_id"]) if d.get("table_id") else None
+        table = (
+            RestaurantTable.objects.get(pk=d["table_id"]) if d.get("table_id") else None
+        )
         customer = None
         if d.get("customer_id"):
             try:
                 from apps.customers.models import Customer
+
                 customer = Customer.objects.get(pk=d["customer_id"])
             except Exception:
                 pass
         order = Order.objects.create(
-            table=table, staff=request.user, customer=customer,
-            discount=d["discount"], notes=d["notes"],
-            type=d.get("type","DINE_IN"), status="SENT",
+            table=table,
+            staff=request.user,
+            customer=customer,
+            discount=d["discount"],
+            notes=d["notes"],
+            type=d.get("type", "DINE_IN"),
+            status="SENT",
         )
         for ld in d["lines"]:
             OrderLine.objects.create(
-                order=order, menu_item_id=ld["menu_item_id"],
-                name=ld["name"], quantity=ld["quantity"],
-                unit_price=ld["unit_price"], mod_options=ld["mod_options"],
-                note=ld["note"], station=ld["station"],
-                course=ld.get("course", 1), kds_status="PENDING",
+                order=order,
+                menu_item_id=ld["menu_item_id"],
+                name=ld["name"],
+                quantity=ld["quantity"],
+                unit_price=ld["unit_price"],
+                mod_options=ld["mod_options"],
+                note=ld["note"],
+                station=ld["station"],
+                course=ld.get("course", 1),
+                kds_status="PENDING",
             )
         if table:
             table.status = "OCCUPIED"
@@ -74,9 +91,12 @@ class OrderViewSet(viewsets.ModelViewSet):
                 customer.save(update_fields=["loyalty_points"])
                 customer.recalculate_tier()
                 from apps.customers.models import LoyaltyTransaction
+
                 LoyaltyTransaction.objects.create(
-                    customer=customer, type="EARN", points=points,
-                    reference=f"Order #{order.id}"
+                    customer=customer,
+                    type="EARN",
+                    points=points,
+                    reference=f"Order #{order.id}",
                 )
         data = OrderSerializer(order).data
         broadcast("order.created", data)
@@ -92,10 +112,15 @@ class OrderViewSet(viewsets.ModelViewSet):
         ser.is_valid(raise_exception=True)
         d = ser.validated_data
         line = OrderLine.objects.create(
-            order=order, menu_item_id=d["menu_item_id"],
-            name=d["name"], quantity=d["quantity"],
-            unit_price=d["unit_price"], mod_options=d["mod_options"],
-            note=d["note"], station=d["station"], course=d.get("course",1),
+            order=order,
+            menu_item_id=d["menu_item_id"],
+            name=d["name"],
+            quantity=d["quantity"],
+            unit_price=d["unit_price"],
+            mod_options=d["mod_options"],
+            note=d["note"],
+            station=d["station"],
+            course=d.get("course", 1),
         )
         broadcast("order.updated", OrderSerializer(order).data)
         return Response(OrderLineSerializer(line).data, status=201)
@@ -110,7 +135,9 @@ class OrderViewSet(viewsets.ModelViewSet):
         broadcast("order.updated", OrderSerializer(order).data)
         return Response(status=204)
 
-    @action(detail=True, methods=["patch"], url_path="lines/(?P<line_id>[0-9]+)/kds-status")
+    @action(
+        detail=True, methods=["patch"], url_path="lines/(?P<line_id>[0-9]+)/kds-status"
+    )
     def update_kds_status(self, request, pk=None, line_id=None):
         order = self.get_object()
         try:
@@ -128,7 +155,7 @@ class OrderViewSet(viewsets.ModelViewSet):
         elif all(l.kds_status == "SERVED" for l in all_lines):
             order.status = "PAID"
             order.closed_at = timezone.now()
-            order.save(update_fields=["status","closed_at"])
+            order.save(update_fields=["status", "closed_at"])
         data = OrderSerializer(order).data
         broadcast("kds.updated", data)
         return Response(data)
@@ -142,10 +169,15 @@ class OrderViewSet(viewsets.ModelViewSet):
         ser = ProcessPaymentSerializer(data=request.data)
         ser.is_valid(raise_exception=True)
         d = ser.validated_data
-        Payment.objects.create(order=order, method=d["method"], amount=d["amount"], reference=d["reference"])
+        Payment.objects.create(
+            order=order,
+            method=d["method"],
+            amount=d["amount"],
+            reference=d["reference"],
+        )
         order.status = "PAID"
         order.closed_at = timezone.now()
-        order.save(update_fields=["status","closed_at"])
+        order.save(update_fields=["status", "closed_at"])
         if order.table:
             order.table.status = "FREE"
             order.table.save(update_fields=["status"])
@@ -160,7 +192,7 @@ class OrderViewSet(viewsets.ModelViewSet):
             return Response({"detail": "Cannot void paid."}, status=400)
         order.status = "VOIDED"
         order.closed_at = timezone.now()
-        order.save(update_fields=["status","closed_at"])
+        order.save(update_fields=["status", "closed_at"])
         if order.table:
             order.table.status = "FREE"
             order.table.save(update_fields=["status"])
@@ -175,20 +207,24 @@ class OrderViewSet(viewsets.ModelViewSet):
 
 
 class ClockEntryViewSet(viewsets.ModelViewSet):
-    queryset           = ClockEntry.objects.select_related("staff")
-    serializer_class   = ClockEntrySerializer
+    queryset = ClockEntry.objects.select_related("staff")
+    serializer_class = ClockEntrySerializer
     permission_classes = [permissions.IsAuthenticated]
-    filterset_fields   = ["staff"]
+    filterset_fields = ["staff"]
 
     @action(detail=False, methods=["post"], url_path="clock-in")
     def clock_in(self, request):
-        ClockEntry.objects.filter(staff=request.user, clocked_out__isnull=True).update(clocked_out=timezone.now())
+        ClockEntry.objects.filter(staff=request.user, clocked_out__isnull=True).update(
+            clocked_out=timezone.now()
+        )
         entry = ClockEntry.objects.create(staff=request.user, clocked_in=timezone.now())
         return Response(ClockEntrySerializer(entry).data, status=201)
 
     @action(detail=False, methods=["post"], url_path="clock-out")
     def clock_out(self, request):
-        entry = ClockEntry.objects.filter(staff=request.user, clocked_out__isnull=True).last()
+        entry = ClockEntry.objects.filter(
+            staff=request.user, clocked_out__isnull=True
+        ).last()
         if not entry:
             return Response({"detail": "Not clocked in."}, status=400)
         entry.clocked_out = timezone.now()
@@ -197,5 +233,7 @@ class ClockEntryViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"], url_path="my-hours")
     def my_hours(self, request):
-        entries = ClockEntry.objects.filter(staff=request.user).order_by("-clocked_in")[:30]
+        entries = ClockEntry.objects.filter(staff=request.user).order_by("-clocked_in")[
+            :30
+        ]
         return Response(ClockEntrySerializer(entries, many=True).data)
